@@ -1,0 +1,23 @@
+# Ignore configuration files that may contain sensitive information.
+.htaccess
+docroot/sites/*/settings*.php
+
+# Ignore paths that contain user-generated content.
+docroot/files
+docroot/sites/*/files
+docroot/sites/*/private
+
+# Netbeans specific
+nbproject/*
+!nbproject/project.properties
+!nbproject/project.xml
+
+# OS generated files#
+#####################
+.DS_Store
+.DS_Store*
+ehthumbs.db
+Thumbs.db
+*.log
+*~
+*.swp

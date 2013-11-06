@@ -1,0 +1,8 @@
+name = UC add to cart extras
+description = Provides additional ways of adding products to the cart.
+package = Ubercart (contrib)
+core = 7.x
+dependencies[] = views
+dependencies[] = uc_product
+
+files[] = uc_add_to_cart_extras_handler_field_quantity.inc
