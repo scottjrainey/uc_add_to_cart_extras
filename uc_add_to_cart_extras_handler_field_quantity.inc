@@ -15,7 +15,6 @@ class uc_add_to_cart_extras_handler_field_quantity extends views_handler_field {
     $options = parent::option_definition();
 
     $options['default_quantity'] = array('default' => 0);
-    $options['combine'] = array('default' => TRUE);
     $options['display_path'] = array('default' => FALSE);
 
     return $options;
@@ -32,12 +31,6 @@ class uc_add_to_cart_extras_handler_field_quantity extends views_handler_field {
       '#title' => t('Default quantity'),
       '#default_value' => $this->options['default_quantity'],
       '#size' => 16,
-    );
-    $form['combine'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Attempt to combine same products on the same line item in the cart.'),
-      '#description' => t('The line item type, referenced product, and data from fields exposed on the Add to Cart form must all match to combine.'),
-      '#default_value' => $this->options['combine'],
     );
     $form['display_path'] = array(
       '#type' => 'checkbox',
@@ -65,7 +58,7 @@ class uc_add_to_cart_extras_handler_field_quantity extends views_handler_field {
 
       $form[$this->options['id']][$row_index] = array(
         '#type' => 'textfield',
-        '#product_id' => $product_id,
+        '#nid' => $product_id,
         '#default_value' => $this->options['default_quantity'],
         '#size' => 5,
       );
@@ -97,7 +90,7 @@ class uc_add_to_cart_extras_handler_field_quantity extends views_handler_field {
       // Don't add products that have quantity 0.
       $quantity = $form_state['values'][$field_name][$row_id];
       if ($quantity > 0) {
-        $product_id = $form[$field_name][$row_id]['#product_id'];
+        $product_id = $form[$field_name][$row_id]['#nid'];
         $product_quantities[$product_id] = $quantity;
       }
     }
@@ -105,25 +98,7 @@ class uc_add_to_cart_extras_handler_field_quantity extends views_handler_field {
     $products = uc_order_product_load_multiple(array_keys($product_quantities));
     foreach ($products as $product_id => $product) {
       $quantity = $product_quantities[$product_id];
-      $line_item = commerce_product_line_item_new($product, $quantity);
-      $line_item->data['context']['product_ids'] = array($product_id);
-      $line_item->data['context']['add_to_cart_combine'] = $this->options['combine'];
-
-      // Add the display path to the line item's context data array if specified.
-      if ($this->view->display[$this->view->current_display]->display_plugin == 'page' &&
-        $this->options['display_path']) {
-        $line_item->data['context']['display_path'] = $this->view->display[$this->view->current_display]->display_options['path'];
-      }
-
-      // Store the View data in the context data array as well.
-      $line_item->data['context']['view'] = array(
-        'view_name' => $this->view->name,
-        'display_name' => $this->view->current_display,
-        'human_name' => $this->view->human_name,
-        'page' => $this->view->current_page,
-      );
-
-      commerce_cart_product_add($user->uid, $line_item, $this->options['combine']);
+      uc_cart_add_item($product_id, $quantity);
     }
 
     if (count($product_quantities)) {
